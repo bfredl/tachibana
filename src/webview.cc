@@ -192,6 +192,7 @@ public:
     virtual void page_did_finish_loading(AK::URL const&) override
     {
         fprintf(stderr, "HONK!\n");
+        paint();
     }
 
 
@@ -212,6 +213,7 @@ public:
         fprintf(stdout, "ROOT %p\n", layout_root);
         if (!layout_root) return;
         fprintf(stdout, "children %zd\n", layout_root->child_count());
+        Web::dump_tree(*layout_root);
     }
 
 
@@ -228,5 +230,4 @@ int main() {
   client.setup_palette(Gfx::load_system_theme(String::formatted("{}/res/themes/Default.ini", s_serenity_resource_root)));
   client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
   return event_loop.exec();
-  // client.paint();
 }
