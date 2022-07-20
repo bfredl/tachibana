@@ -14,6 +14,11 @@
 #include <LibWeb/Painting/StackingContext.h>
 #include <LibWeb/WebSockets/WebSocket.h>
 #include <LibCore/System.h>
+#include <LibGfx/Bitmap.h>
+#include <LibGfx/Font/FontDatabase.h>
+#include <LibGfx/ImageDecoder.h>
+#include <LibGfx/PNGWriter.h>
+#include <LibGfx/Rect.h>
 
 #include "webview.h"
 
@@ -104,6 +109,19 @@ private:
     HashMap<void*, NonnullRefPtr<Request>> m_pending;
 };
 
+RequestManagerWebView::RequestManagerWebView()
+{
+}
+
+RefPtr<Web::ResourceLoaderConnectorRequest> RequestManagerWebView::start_request(String const& method, AK::URL const& url, HashMap<String, String> const& request_headers, ReadonlyBytes request_body, Core::ProxyData const& proxy)
+{
+    if (!url.protocol().is_one_of_ignoring_case("http"sv, "https"sv)) {
+        return nullptr;
+    }
+
+    // TODO
+    // return nullptr;
+}
 // Taken from SerenityOS/ladybird sources
 void initialize_web_engine()
 {
@@ -152,3 +170,7 @@ public:
     Gfx::IntRect m_viewport_rect { 0, 0, 800, 600 };
     Web::CSS::PreferredColorScheme m_preferred_color_scheme { Web::CSS::PreferredColorScheme::Auto };
 };
+
+int main() {
+  initialize_web_engine();
+}
