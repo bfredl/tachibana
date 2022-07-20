@@ -176,8 +176,9 @@ public:
         request->on_file_request_finish(file);
     }
 
-    HeadlessBrowserPageClient()
-       : m_page(make<Web::Page>(*this))
+    HeadlessBrowserPageClient(Core::EventLoop &loop)
+       : m_page(make<Web::Page>(*this)),
+         m_loop(loop)
     {
     }
 
@@ -193,6 +194,7 @@ public:
     {
         fprintf(stderr, "HONK!\n");
         paint();
+        m_loop.quit(0);
     }
 
 
@@ -221,13 +223,15 @@ public:
     RefPtr<Gfx::PaletteImpl> m_palette_impl;
     Gfx::IntRect m_viewport_rect { 0, 0, 800, 600 };
     Web::CSS::PreferredColorScheme m_preferred_color_scheme { Web::CSS::PreferredColorScheme::Auto };
+    Core::EventLoop &m_loop;
 };
 
 int main() {
   Core::EventLoop event_loop;
   initialize_web_engine();
-  auto client = HeadlessBrowserPageClient();
+  auto client = HeadlessBrowserPageClient(event_loop);
   client.setup_palette(Gfx::load_system_theme(String::formatted("{}/res/themes/Default.ini", s_serenity_resource_root)));
   client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
+
   return event_loop.exec();
 }
