@@ -173,4 +173,5 @@ public:
 
 int main() {
   initialize_web_engine();
+  auto page = HeadlessBrowserPageClient();
 }
