@@ -146,6 +146,8 @@ void initialize_web_engine()
 
 class HeadlessBrowserPageClient final : public Web::PageClient {
 public:
+    Web::Page& page() { return *m_page; }
+    Web::Page const& page() const { return *m_page; }
 
     virtual Gfx::Palette palette() const override
     {
@@ -158,6 +160,11 @@ public:
         return m_viewport_rect;
     }
 
+    void setup_palette(Core::AnonymousBuffer theme_buffer)
+    {
+        m_palette_impl = Gfx::PaletteImpl::create_with_anonymous_buffer(theme_buffer);
+    }
+
     virtual Web::CSS::PreferredColorScheme preferred_color_scheme() const override
     {
         return m_preferred_color_scheme;
@@ -165,12 +172,8 @@ public:
 
     void request_file(NonnullRefPtr<Web::FileRequest>& request) override
     {
-        fprintf(stderr, "PTHAN: %s\n", request->path().characters());
         auto const file = Core::System::open(request->path(), O_RDONLY);
-        fprintf(stderr, "YERROR: %d\n", file.is_error());
-        fprintf(stderr, "YVALUE: %d\n", file.value());
         request->on_file_request_finish(file);
-        bool x = IsSame<int, int>;
     }
 
     HeadlessBrowserPageClient()
@@ -183,7 +186,32 @@ public:
         if (!url.is_valid())
             return;
 
-         m_page->load(url);
+         page().load(url);
+    }
+
+    virtual void page_did_finish_loading(AK::URL const&) override
+    {
+        fprintf(stderr, "HONK!\n");
+    }
+
+
+    Web::Layout::InitialContainingBlock* layout_root()
+    {
+        auto* document = page().top_level_browsing_context().active_document();
+        if (!document)
+            return nullptr;
+        return document->layout_node();
+    }
+
+    void paint() {
+        auto* document = page().top_level_browsing_context().active_document();
+        fprintf(stdout, "DOCUMENT %p\n", document);
+        if (!document) return;
+        document->update_layout();
+        auto* layout_root = document->layout_node();
+        fprintf(stdout, "ROOT %p\n", layout_root);
+        if (!layout_root) return;
+        fprintf(stdout, "children %zd\n", layout_root->child_count());
     }
 
 
@@ -197,5 +225,8 @@ int main() {
   Core::EventLoop event_loop;
   initialize_web_engine();
   auto client = HeadlessBrowserPageClient();
+  client.setup_palette(Gfx::load_system_theme(String::formatted("{}/res/themes/Default.ini", s_serenity_resource_root)));
   client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
+  return event_loop.exec();
+  // client.paint();
 }
