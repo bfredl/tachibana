@@ -170,6 +170,7 @@ public:
         fprintf(stderr, "YERROR: %d\n", file.is_error());
         fprintf(stderr, "YVALUE: %d\n", file.value());
         request->on_file_request_finish(file);
+        bool x = IsSame<int, int>;
     }
 
     HeadlessBrowserPageClient()

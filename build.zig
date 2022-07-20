@@ -3,13 +3,14 @@ pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
     var exe = b.addExecutable("test", null);
     exe.setBuildMode(mode);
-    exe.addCSourceFile("src/webview.cc", &[_][]const u8{
-        "-std=c++20",
-        "-fdiagnostics-color=always",
-        "-fno-delete-null-pointer-checks",
-        "-fno-exceptions",
-        "-fno-semantic-interposition",
-    });
+    // exe.addCSourceFile("src/webview.cc", &[_][]const u8{
+    //     "-std=c++20",
+    //     "-fdiagnostics-color=always",
+    //     "-fno-delete-null-pointer-checks",
+    //     "-fno-exceptions",
+    //     "-fno-semantic-interposition",
+    // });
+    exe.addObjectFile("webview.o");
     exe.linkLibC();
     exe.linkLibCpp();
     exe.linkSystemLibraryName("m");
