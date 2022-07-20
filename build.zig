@@ -7,12 +7,8 @@ pub fn build(b: *Builder) void {
         "-std=c++20",
         "-fdiagnostics-color=always",
         "-fno-delete-null-pointer-checks",
-        "-ffile-prefix-map=/home/bfredl/dev/serenity=.",
         "-fno-exceptions",
         "-fno-semantic-interposition",
-        "-fsized-deallocation",
-        "-fstack-clash-protection",
-        "-fstack-protector-strong",
     });
     exe.linkLibC();
     exe.linkLibCpp();
@@ -21,11 +17,13 @@ pub fn build(b: *Builder) void {
     exe.linkSystemLibraryName("crypt");
     exe.linkSystemLibraryName("GLX");
     exe.linkSystemLibraryName("OpenGL");
-    exe.addIncludeDir("../serenity");
+    exe.addIncludeDir("../ladybird/Build/ladybird_autogen/include/");
     exe.addIncludeDir("../serenity/Userland/Libraries");
+    exe.addIncludeDir("../ladybird/Build/_deps/lagom-build/Services/");
+    exe.addIncludeDir("../serenity");
+    exe.addIncludeDir("../ladybird/Build/_deps/lagom-build");
 
     // TODO: shell out to our own lagom-build cmake instead of leeching the ladybird
-    exe.addIncludeDir("../ladybird/Build/_deps/lagom-build");
     if (false) {
         exe.addObjectFile("../ladybird/Build/_deps/lagom-build/liblagom-compress.a");
         exe.addObjectFile("../ladybird/Build/_deps/lagom-build/liblagom-core.a");
