@@ -3,7 +3,17 @@ pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
     var exe = b.addExecutable("test", null);
     exe.setBuildMode(mode);
-    exe.addCSourceFile("src/webview.cc", &[_][]const u8{"-std=c++20"});
+    exe.addCSourceFile("src/webview.cc", &[_][]const u8{
+        "-std=c++20",
+        "-fdiagnostics-color=always",
+        "-fno-delete-null-pointer-checks",
+        "-ffile-prefix-map=/home/bfredl/dev/serenity=.",
+        "-fno-exceptions",
+        "-fno-semantic-interposition",
+        "-fsized-deallocation",
+        "-fstack-clash-protection",
+        "-fstack-protector-strong",
+    });
     exe.linkLibC();
     exe.linkLibCpp();
     exe.linkSystemLibraryName("m");

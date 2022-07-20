@@ -168,6 +168,7 @@ public:
         fprintf(stderr, "PTHAN: %s\n", request->path().characters());
         auto const file = Core::System::open(request->path(), O_RDONLY);
         fprintf(stderr, "YERROR: %d\n", file.is_error());
+        fprintf(stderr, "YVALUE: %d\n", file.value());
         request->on_file_request_finish(file);
     }
 
