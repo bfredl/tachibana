@@ -13,6 +13,7 @@
 #include <LibWeb/Painting/PaintableBox.h>
 #include <LibWeb/Painting/StackingContext.h>
 #include <LibWeb/WebSockets/WebSocket.h>
+#include <LibCore/EventLoop.h>
 #include <LibCore/System.h>
 #include <LibGfx/Bitmap.h>
 #include <LibGfx/Font/FontDatabase.h>
@@ -115,12 +116,14 @@ RequestManagerWebView::RequestManagerWebView()
 
 RefPtr<Web::ResourceLoaderConnectorRequest> RequestManagerWebView::start_request(String const& method, AK::URL const& url, HashMap<String, String> const& request_headers, ReadonlyBytes request_body, Core::ProxyData const& proxy)
 {
+    auto proto = url.protocol();
+    fprintf(stderr, "PROTO: %s\n", proto.characters());
     if (!url.protocol().is_one_of_ignoring_case("http"sv, "https"sv)) {
         return nullptr;
     }
 
     // TODO
-    // return nullptr;
+    return nullptr;
 }
 // Taken from SerenityOS/ladybird sources
 void initialize_web_engine()
@@ -162,16 +165,35 @@ public:
 
     void request_file(NonnullRefPtr<Web::FileRequest>& request) override
     {
+        fprintf(stderr, "PTHAN: %s\n", request->path().characters());
         auto const file = Core::System::open(request->path(), O_RDONLY);
+        fprintf(stderr, "YERROR: %d\n", file.is_error());
         request->on_file_request_finish(file);
     }
 
+    HeadlessBrowserPageClient()
+       : m_page(make<Web::Page>(*this))
+    {
+    }
+
+    void load(AK::URL const& url)
+    {
+        if (!url.is_valid())
+            return;
+
+         m_page->load(url);
+    }
+
+
+    NonnullOwnPtr<Web::Page> m_page;
     RefPtr<Gfx::PaletteImpl> m_palette_impl;
     Gfx::IntRect m_viewport_rect { 0, 0, 800, 600 };
     Web::CSS::PreferredColorScheme m_preferred_color_scheme { Web::CSS::PreferredColorScheme::Auto };
 };
 
 int main() {
+  Core::EventLoop event_loop;
   initialize_web_engine();
-  auto page = HeadlessBrowserPageClient();
+  auto client = HeadlessBrowserPageClient();
+  client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
 }
