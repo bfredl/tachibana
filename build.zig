@@ -10,6 +10,13 @@ pub fn build(b: *Builder) void {
         "-fno-exceptions",
         "-fno-semantic-interposition",
     });
+    exe.addCSourceFile("src/EventLoopPluginGLib.cc", &[_][]const u8{
+        "-std=c++20",
+        "-fdiagnostics-color=always",
+        "-fno-delete-null-pointer-checks",
+        "-fno-exceptions",
+        "-fno-semantic-interposition",
+    });
     // exe.addObjectFile("webview.o");
     exe.linkLibC();
     exe.linkLibCpp();
@@ -18,6 +25,7 @@ pub fn build(b: *Builder) void {
     exe.linkSystemLibraryName("crypt");
     exe.linkSystemLibraryName("GLX");
     exe.linkSystemLibraryName("OpenGL");
+    exe.linkSystemLibrary("glib-2.0");
     exe.addIncludeDir("../ladybird/Build/ladybird_autogen/include/");
     exe.addIncludeDir("../serenity/Userland/Libraries");
     exe.addIncludeDir("../ladybird/Build/_deps/lagom-build/Services/");

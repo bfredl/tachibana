@@ -12,6 +12,7 @@
 #include <LibWeb/Page/Page.h>
 #include <LibWeb/Painting/PaintableBox.h>
 #include <LibWeb/Painting/StackingContext.h>
+#include <LibWeb/Platform/FontPlugin.h>
 #include <LibWeb/WebSockets/WebSocket.h>
 #include <LibCore/EventLoop.h>
 #include <LibCore/System.h>
@@ -22,7 +23,8 @@
 #include <LibGfx/Rect.h>
 
 #include "webview.h"
-
+#include "EventLoopPluginGLib.h"
+#include "glib.h"
 
 String s_serenity_resource_root = [] {
     auto const* source_dir = getenv("SERENITY_SOURCE_DIR");
@@ -125,13 +127,56 @@ RefPtr<Web::ResourceLoaderConnectorRequest> RequestManagerWebView::start_request
     // TODO
     return nullptr;
 }
+
+class FontPluginWebview final : public Web::Platform::FontPlugin {
+public:
+    FontPluginWebview();
+    virtual ~FontPluginWebview();
+
+    virtual String generic_font_name(Web::Platform::GenericFont) override;
+};
+
+FontPluginWebview::FontPluginWebview()
+{
+}
+
+FontPluginWebview::~FontPluginWebview() = default;
+
+String FontPluginWebview::generic_font_name(Web::Platform::GenericFont generic_font)
+{
+    // FIXME: Replace hard-coded font names with a relevant call to FontDatabase.
+    // Currently, we cannot request the default font's name, or request it at a specific size and weight.
+    // So, hard-coded font names it is.
+    switch (generic_font) {
+    case Web::Platform::GenericFont::SansSerif:
+    case Web::Platform::GenericFont::UiSansSerif:
+    case Web::Platform::GenericFont::Cursive:
+    case Web::Platform::GenericFont::UiRounded:
+        return "Katica";
+    case Web::Platform::GenericFont::Monospace:
+    case Web::Platform::GenericFont::UiMonospace:
+        return "Csilla";
+    case Web::Platform::GenericFont::Serif:
+    case Web::Platform::GenericFont::UiSerif:
+        return "Roman";
+    case Web::Platform::GenericFont::Fantasy:
+        return "Comic Book";
+    case Web::Platform::GenericFont::__Count:
+        VERIFY_NOT_REACHED();
+    }
+    VERIFY_NOT_REACHED();
+}
+
 // Taken from SerenityOS/ladybird sources
 void initialize_web_engine()
 {
+    Web::Platform::EventLoopPlugin::install(*new EventLoopPluginGLib);
+
     Web::ImageDecoding::Decoder::initialize(HeadlessImageDecoderClient::create());
     Web::ResourceLoader::initialize(RequestManagerWebView::create());
     // Web::WebSockets::WebSocketClientManager::initialize(HeadlessWebSocketClientManager::create());
 
+    Web::Platform::FontPlugin::install(*new FontPluginWebview);
 
     Web::FrameLoader::set_default_favicon_path(String::formatted("{}/res/icons/16x16/app-browser.png", s_serenity_resource_root));
     dbgln("Set favicon path to {}", String::formatted("{}/res/icons/16x16/app-browser.png", s_serenity_resource_root));
@@ -176,9 +221,8 @@ public:
         request->on_file_request_finish(file);
     }
 
-    HeadlessBrowserPageClient(Core::EventLoop &loop)
-       : m_page(make<Web::Page>(*this)),
-         m_loop(loop)
+    HeadlessBrowserPageClient()
+       : m_page(make<Web::Page>(*this))
     {
     }
 
@@ -194,7 +238,8 @@ public:
     {
         fprintf(stderr, "HONK!\n");
         paint();
-        m_loop.quit(0);
+        // m_loop.quit(0);
+        exit(5);
     }
 
 
@@ -223,15 +268,15 @@ public:
     RefPtr<Gfx::PaletteImpl> m_palette_impl;
     Gfx::IntRect m_viewport_rect { 0, 0, 800, 600 };
     Web::CSS::PreferredColorScheme m_preferred_color_scheme { Web::CSS::PreferredColorScheme::Auto };
-    Core::EventLoop &m_loop;
 };
 
 int main() {
-  Core::EventLoop event_loop;
   initialize_web_engine();
-  auto client = HeadlessBrowserPageClient(event_loop);
+  auto client = HeadlessBrowserPageClient();
   client.setup_palette(Gfx::load_system_theme(String::formatted("{}/res/themes/Default.ini", s_serenity_resource_root)));
   client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
 
-  return event_loop.exec();
+  while (true) {
+    g_main_context_iteration (NULL, true);
+  }
 }
