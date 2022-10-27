@@ -237,9 +237,20 @@ public:
     virtual void page_did_finish_loading(AK::URL const&) override
     {
         fprintf(stderr, "HONK!\n");
-        paint();
+        test_paint();
         // m_loop.quit(0);
         exit(5);
+    }
+
+    void test_paint(void)
+    {
+        auto output_rect = m_viewport_rect;
+        // haha no scroll bars here
+        output_rect.set_x(0);
+        output_rect.set_y(0);
+        auto output_bitmap = MUST(Gfx::Bitmap::try_create(Gfx::BitmapFormat::BGRx8888, output_rect.size()));
+
+        paint(output_rect, output_bitmap);
     }
 
 
@@ -251,16 +262,23 @@ public:
         return document->layout_node();
     }
 
-    void paint() {
+    void paint(Gfx::IntRect const& content_rect, Gfx::Bitmap& target) {
+        Gfx::Painter painter(target);
+        painter.fill_rect({ {}, content_rect.size() }, palette().base());
+
         auto* document = page().top_level_browsing_context().active_document();
-        fprintf(stdout, "DOCUMENT %p\n", document);
         if (!document) return;
         document->update_layout();
         auto* layout_root = document->layout_node();
-        fprintf(stdout, "ROOT %p\n", layout_root);
         if (!layout_root) return;
         fprintf(stdout, "children %zd\n", layout_root->child_count());
-        Web::dump_tree(*layout_root);
+
+        Web::PaintContext context(painter, palette(), content_rect.top_left());
+        context.set_should_show_line_box_borders(false);
+        context.set_viewport_rect(content_rect);
+        context.set_has_focus(true);
+        layout_root->paint_all_phases(context);
+        // Web::dump_tree(*layout_root);
     }
 
 
@@ -277,6 +295,6 @@ int main() {
   client.load(AK::URL("file:///home/bfredl/dev/zig/lib/docs/index.html"));
 
   while (true) {
-    g_main_context_iteration (NULL, true);
+    g_main_context_iteration(NULL, true);
   }
 }

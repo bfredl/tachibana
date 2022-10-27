@@ -26,11 +26,11 @@ pub fn build(b: *Builder) void {
     exe.linkSystemLibraryName("GLX");
     exe.linkSystemLibraryName("OpenGL");
     exe.linkSystemLibrary("glib-2.0");
-    exe.addIncludeDir("../ladybird/Build/ladybird_autogen/include/");
-    exe.addIncludeDir("../serenity/Userland/Libraries");
-    exe.addIncludeDir("../ladybird/Build/_deps/lagom-build/Services/");
-    exe.addIncludeDir("../serenity");
-    exe.addIncludeDir("../ladybird/Build/_deps/lagom-build");
+    exe.addIncludePath("../ladybird/Build/ladybird_autogen/include/");
+    exe.addIncludePath("../serenity/Userland/Libraries");
+    exe.addIncludePath("../ladybird/Build/_deps/lagom-build/Services/");
+    exe.addIncludePath("../serenity");
+    exe.addIncludePath("../ladybird/Build/_deps/lagom-build");
 
     // TODO: shell out to our own lagom-build cmake instead of leeching the ladybird
     if (false) {
@@ -52,7 +52,7 @@ pub fn build(b: *Builder) void {
         exe.addObjectFile("../ladybird/Build/_deps/lagom-build/liblagom-web.a");
         exe.addObjectFile("../ladybird/Build/_deps/lagom-build/liblagom-xml.a");
     } else {
-        exe.addLibPath("../ladybird/Build/_deps/lagom-build/");
+        exe.addLibraryPath("../ladybird/Build/_deps/lagom-build/");
         exe.linkSystemLibraryName("lagom-compress");
         exe.linkSystemLibraryName("lagom-core");
         exe.linkSystemLibraryName("lagom-crypto");
